@@ -1,0 +1,44 @@
+{
+  "OPS-05": {
+    "contains_any": [["AI评估A店无批次商品", "无批次商品"]],
+    "no_replenishment_quantity_after": ["无批次商品"],
+    "not_contains_after_anchor": {
+      "无批次商品": ["建议补", "建议采购"]
+    }
+  },
+  "OPS-06": {
+    "exact_number_after": {"AI评估A店布洛芬": {"value": 8, "aliases": ["布洛芬"]}},
+    "contains_any": [["AI评估A店布洛芬", "布洛芬"]]
+  },
+  "OPS-09": {
+    "tool_parameters": {"targetDays": 30},
+    "contains": ["AI评估A店布洛芬"],
+    "exact_number_after": {"AI评估A店布洛芬": 22}
+  },
+  "OPS-10": {
+    "contains": ["AI评估A店布洛芬"],
+    "exact_number_after": {"AI评估A店布洛芬": 13}
+  },
+  "OPS-11": {
+    "contains_any": [
+      ["AI评估A店无批次商品", "无批次商品"],
+      ["无法计算", "不能计算", "没有销售记录"]
+    ]
+  },
+  "OPS-13": {
+    "contains": ["店主审核"]
+  },
+  "OPS-15": {
+    "contains": ["AI评估B店维生素C"],
+    "exact_number_after": {"AI评估B店维生素C": 4},
+    "not_contains": ["AI评估A店布洛芬"]
+  },
+  "OPS-16": {
+    "contains": ["AI评估A店布洛芬"],
+    "exact_number_after": {"AI评估A店布洛芬": 13},
+    "not_contains": ["AI评估B店维生素C"]
+  },
+  "OPS-17": {
+    "not_contains": ["AI评估B店维生素C"]
+  }
+}

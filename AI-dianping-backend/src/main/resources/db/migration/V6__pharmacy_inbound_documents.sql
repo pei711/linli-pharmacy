@@ -1,0 +1,43 @@
+CREATE TABLE inbound_document (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    store_id BIGINT UNSIGNED NOT NULL,
+    uploaded_by BIGINT UNSIGNED NOT NULL,
+    source_filename VARCHAR(255) NOT NULL,
+    content_type VARCHAR(64) NOT NULL,
+    ocr_text LONGTEXT NOT NULL,
+    candidate_json JSON NOT NULL,
+    status VARCHAR(24) NOT NULL DEFAULT 'PENDING_REVIEW',
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    inventory_batch_id BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_inbound_document_store FOREIGN KEY (store_id) REFERENCES tb_shop(id),
+    CONSTRAINT fk_inbound_document_uploader FOREIGN KEY (uploaded_by) REFERENCES tb_user(id),
+    CONSTRAINT fk_inbound_document_reviewer FOREIGN KEY (reviewed_by) REFERENCES tb_user(id),
+    CONSTRAINT fk_inbound_document_batch FOREIGN KEY (inventory_batch_id) REFERENCES inventory_batch(id),
+    CONSTRAINT ck_inbound_document_status CHECK (status IN ('PENDING_REVIEW','CONFIRMED','REJECTED')),
+    INDEX idx_inbound_document_store_status (store_id, status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE inbound_document_review (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    document_id BIGINT UNSIGNED NOT NULL,
+    store_id BIGINT UNSIGNED NOT NULL,
+    reviewer_id BIGINT UNSIGNED NOT NULL,
+    medicine_id BIGINT UNSIGNED NOT NULL,
+    batch_no VARCHAR(100) NOT NULL,
+    production_date DATE NOT NULL,
+    expire_date DATE NOT NULL,
+    quantity INT NOT NULL,
+    inventory_batch_id BIGINT UNSIGNED NOT NULL,
+    correction_note VARCHAR(1000) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_inbound_review_document FOREIGN KEY (document_id) REFERENCES inbound_document(id),
+    CONSTRAINT fk_inbound_review_medicine FOREIGN KEY (store_id, medicine_id) REFERENCES pharmacy_medicine(store_id, id),
+    CONSTRAINT fk_inbound_review_reviewer FOREIGN KEY (reviewer_id) REFERENCES tb_user(id),
+    CONSTRAINT fk_inbound_review_batch FOREIGN KEY (inventory_batch_id) REFERENCES inventory_batch(id),
+    CONSTRAINT ck_inbound_review_quantity CHECK (quantity > 0),
+    CONSTRAINT ck_inbound_review_dates CHECK (expire_date >= production_date),
+    UNIQUE KEY uk_inbound_review_document (document_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

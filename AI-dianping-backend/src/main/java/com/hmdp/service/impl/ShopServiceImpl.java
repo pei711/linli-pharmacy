@@ -52,6 +52,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     private BloomFilter<Long> bloomFilter;
 
+
     @Override
     public Result queryById(Long id) {
         Shop shop = cacheClient.queryWithPassThroughAndMutex(

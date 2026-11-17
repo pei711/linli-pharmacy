@@ -1,0 +1,5 @@
+# Enable only for the dedicated offset-interruption verification project.
+services:
+  backend:
+    environment:
+      APP_PHARMACY_SECKILL_TEST_PAUSE_BEFORE_ACK_MS: "60000"

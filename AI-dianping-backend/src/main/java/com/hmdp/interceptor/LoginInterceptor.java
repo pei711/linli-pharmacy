@@ -19,10 +19,25 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class LoginInterceptor implements HandlerInterceptor {
     //ctrl+o可以选择重写的方法
 
+    static boolean isPublicDocumentationPath(String requestUri, String contextPath) {
+        if (requestUri == null || contextPath == null || !requestUri.startsWith(contextPath)) {
+            return false;
+        }
+        String path = requestUri.substring(contextPath.length());
+        return path.equals("/swagger-ui") || path.startsWith("/swagger-ui/")
+                || path.equals("/swagger-ui.html") || path.equals("/v3/api-docs")
+                || path.startsWith("/v3/api-docs/") || path.startsWith("/webjars/");
+    }
+
     //在目标方法执行之前执行
     //返回值表示是否放行 true放行 false不放行
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // Keep API documentation public even if an MVC path-pattern exclusion
+        // does not match a trailing slash or a SpringDoc redirect target.
+        if (isPublicDocumentationPath(request.getRequestURI(), request.getContextPath())) {
+            return true;
+        }
         // 1.判断ThreadLocal中有没有用户
         UserDTO user = UserHolder.getUser();
         // 2.没有，拦截，返回401状态码

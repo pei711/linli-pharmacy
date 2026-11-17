@@ -20,6 +20,9 @@ public class BloomFilterInitializer implements ApplicationRunner {
     
     @Resource
     private BloomFilter<Long> shopBloomFilter;
+
+    @Resource
+    private BloomFilterState bloomFilterState;
     
     @Override
     public void run(ApplicationArguments args) {
@@ -28,13 +31,16 @@ public class BloomFilterInitializer implements ApplicationRunner {
     
     public void initBloomFilter() {
         log.info("初始化布隆过滤器");
-        
-        // 获取所有商铺ID
-        List<Shop> shops = shopService.list();
-        for (Shop shop : shops) {
-            shopBloomFilter.put(shop.getId());
+        try {
+            // During a partial load, negative lookups bypass the filter and query MySQL.
+            List<Shop> shops = shopService.list();
+            for (Shop shop : shops) {
+                shopBloomFilter.put(shop.getId());
+            }
+            bloomFilterState.markReady();
+            log.info("布隆过滤器初始化完成，共加载{}个店铺", shops.size());
+        } catch (RuntimeException ex) {
+            log.warn("布隆过滤器初始化失败，查询将绕过过滤器以避免误拦截真实店铺", ex);
         }
-        
-        log.info("布隆过滤器初始化完成，共加载{}个店铺", shops.size());
     }
 }

@@ -1,10 +1,24 @@
-# Neighbor Smart Living — Modified Dianping
+# Neighbor Pharmacy Cloud — pharmacy reservation and operations platform
 
-**邻里智营--魔改点评** is an AI-assisted local discovery and merchant operations demo built with Spring Boot and Vue 2. It combines a Dianping-style consumer experience with merchant-facing AI content tools and an optional, token-protected MCP interface.
+An incremental pharmacy platform based on `linli-zhiying`. The isolated test deployment currently includes nearby-pharmacy discovery, batch-backed OTC reservation, Kafka order processing, FEFO inventory, a Caffeine + Redis shop cache, an owner workspace, and a rule-based pharmacy operations assistant. OCR photo recognition is implemented as an optional FastAPI service with an audited human-confirmation path; real PaddleOCR inference has not yet been run on the 2 GiB test server.
 
 [简体中文版](README.zh-CN.md)
 
-## Features
+## Implemented and verified
+
+- User discovery of nearby stores, medicine catalogs, and published activities.
+- Server-authenticated, request-idempotent Redis Lua reservations backed by MySQL inventory batches.
+- Outbox-to-Kafka order creation, consumer idempotency, order status lookup, cancellation, and pickup confirmation.
+- Additive Flyway migrations, FEFO batch locking, stock reservations, and inventory movements.
+- Bounded Caffeine local cache with Redis, versioned invalidation, and Pub/Sub for legacy and pharmacy catalogs; Bloom initialization fails open.
+- Store-owner inventory and catalog management, FEFO view, OCR candidate upload/review UI, and a read-only operations assistant.
+- OCR candidate persistence, store-scoped SKU suggestions, reviewer correction audit, and transactional confirmation into batch inventory and `INBOUND` movement.
+
+The synthetic demo account uses phone `19900000001` and store ID `900010`. The isolated test Compose stack can return a temporary demo verification code; this option is off by default. The production deployment is publicly available at http://111.230.167.35/ . The current tested server stack uses a 1,898 MiB host-use ceiling and 1,600 MiB aggregate container-cap budget.
+
+The authenticated OCR upload/review/receipt path was integration-tested with an explicit mock OCR upstream; this does not measure OCR recognition accuracy. The OCR extraction/PDF rule suite has 15 tests, including 20 synthetic supplier-text cases, delimited multi-item tables, specification, and purchase price fields. Text-based PDFs can be parsed into review candidates; real PaddleOCR inference, image-field accuracy, and runtime memory peak remain unverified. The server verification battery passed 9/9 on 2026-11-18: full-stack smoke, the 1,000-user load test (100 successes / 900 sold out, full inventory reconciliation), Kafka fault injection (duplicate consumption, offset interruption, DLT replay, outbox recovery, order lifecycle), MySQL outage, cache invalidation, the AI operations evaluation (20/20 against the real model), and production restart. The operations assistant was verified on the production deployment answering with real model tool calls (`LANGCHAIN4J_AGENT`); `RULES_FALLBACK` remains only as the degradation path. Prescription medicines are not eligible for online reservations.
+
+## Retained upstream features
 
 - Browse local shops and categories, view shop details, and discover nearby shops.
 - Explore posts, likes, follows, check-ins, coupons, and flash-sale orders.
@@ -17,14 +31,16 @@
 ## Architecture
 
 ```text
-Browser (Vue 2 + Element UI) -> Nginx -> Spring Boot REST API
-                                             |-> MySQL 8
-                                             |-> Redis 7 / Redisson
-                                             |-> Kafka push-topic (real-time delivery)
-                                             |-> Kafka store-topic (asynchronous persistence)
-                                             |-> WebSocket / STOMP (real-time delivery)
-                                             |-> OpenAI-compatible chat API (optional)
-                                             `-> MCP HTTP endpoint (optional, bearer token)
+Customer / pharmacy workspace -> Nginx -> Spring Boot modular monolith
+                                           |-> MySQL 8 (inventory ledger, batches, orders, outbox, audit)
+                                           |-> Redis 7 (Lua reservation, rate limits, shared cache)
+                                           |-> Kafka (pharmacy order chain and retained chat topics)
+                                           |-> FastAPI + PaddleOCR (optional; human-reviewed candidates)
+                                           |-> OpenAI-compatible API (optional; read-only operations tools)
+                                           |-> WebSocket / STOMP (retained real-time chat)
+                                           `-> MCP HTTP endpoint (optional, bearer token)
+
+Reservation: Redis Lua pre-reservation -> MySQL request + outbox -> Kafka -> idempotent consumer -> MySQL FEFO transaction.
 ```
 
 ## Quick start with Docker Compose

@@ -1,0 +1,5 @@
+services:
+  backend:
+    environment:
+      APP_PHARMACY_SECKILL_TEST_PAUSE_AFTER_REDIS_MS: "25000"
+      APP_PHARMACY_SECKILL_REQUEST_TTL_SECONDS: "6"

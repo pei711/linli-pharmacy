@@ -1,0 +1,8 @@
+# The load test sends 1,000 distinct authenticated users from one client IP.
+# Raise only the test stack's IP/activity admission limits so the run measures
+# stock contention and Kafka settlement instead of the production IP limiter.
+services:
+  backend:
+    environment:
+      PHARMACY_ACTIVITY_RATE_PER_SECOND: "2000"
+      PHARMACY_IP_RATE_PER_SECOND: "2000"

@@ -1,0 +1,6 @@
+# Use only for real-model evaluation. Prevents an omitted private API key from
+# silently selecting the generic demo-key RULES_FALLBACK configuration.
+services:
+  backend:
+    environment:
+      AI_API_KEY: ${AI_API_KEY:?AI_API_KEY must be injected from the private server environment}

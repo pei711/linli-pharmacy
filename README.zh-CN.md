@@ -1,10 +1,24 @@
-# 邻里智营--魔改点评
+# 邻药云 Neighbor Pharmacy Cloud
 
-一个基于 Spring Boot 和 Vue 2 的 AI 本地生活与商家经营演示项目，包含点评式消费端、商家 AI 内容工具，以及可选的 MCP 查询接口。
+基于 `linli-zhiying` 增量改造的社区智慧药房平台。隔离测试环境已运行附近门店查询、批次支撑的 OTC 预约、Kafka 异步订单、FEFO 库存、Caffeine + Redis 门店缓存和门店工作台。经营助手已接入真实模型工具调用（生产环境实测来源为 `LANGCHAIN4J_AGENT`），规则摘要仅作降级路径；OCR 候选复核与正式入库链路已接入，但服务器尚未运行真实 PaddleOCR 模型。
 
 [English](README.md)
 
-## 功能
+## 已实现并验证
+
+- 用户按经纬度查找药房、查看商品与已发布活动。
+- 使用服务端登录身份、requestId 幂等和 Redis Lua 预约；MySQL 批次库存是最终账本。
+- Outbox 投递 Kafka 异步创建订单，支持查单、取消和门店核销。
+- Flyway 增量迁移、FEFO 批次分配、库存预留与流水。
+- 有界 Caffeine 本地缓存、Redis 共享缓存和 Pub/Sub 失效；布隆过滤器初始化失败时 fail-open。
+- 门店商品与库存工作台、OCR 候选字段与 SKU 建议、店主人工复核审计及事务入库。
+- 药房经营助手按门店读取库存与出库流水；模型不可用时返回标记为 `RULES_FALLBACK` 的规则摘要。
+
+演示账号为合成手机号 `19900000001`，门店 ID `900010`；商品和批次均为演示数据。只有隔离测试 Compose 显式回传临时验证码；应用默认关闭。生产环境已部署于腾讯云并开放公网访问：http://111.230.167.35/ 。
+
+OCR 后端经 mock 上游验证了上传、候选持久化、SKU 建议、人工确认、库存与流水事务及重复确认拒绝；该测试不代表真实 OCR 准确率。OCR 提取/PDF 规则测试共 15 项，包含 20 份合成供应商文本样例、明确分隔的多商品表格及规格/采购单价字段；扫描版 PDF 的真实 PaddleOCR 推理、图像字段准确率和运行峰值尚未实测。2026-11-18 服务器端验证电池 9/9 全部通过：全栈冒烟、1000 用户压测（100 成功 / 900 售罄，库存对账全过）、Kafka 故障注入（重复消费、Offset 中断、DLT 重投、Outbox 恢复、订单生命周期）、MySQL 中断、缓存失效、AI 经营评估 20/20（真实模型）与生产重启；生产环境经营助手已实测为真实模型工具调用。服务器主机内存使用上限为 1,898 MiB，Compose 容器硬限额预算为 1,600 MiB。处方药不可参加线上预约。
+
+## 原项目保留能力
 
 - 浏览店铺和分类、查看店铺详情、发现附近店铺。
 - 浏览探店笔记，支持点赞、关注、签到、优惠券和秒杀订单等功能。
@@ -17,14 +31,16 @@
 ## 架构
 
 ```text
-浏览器（Vue 2 + Element UI） -> Nginx -> Spring Boot REST API
-                                             |-> MySQL 8
-                                             |-> Redis 7 / Redisson
-                                             |-> Kafka push-topic（实时推送）
-                                             |-> Kafka store-topic（异步落库）
-                                             |-> WebSocket / STOMP（实时收发）
-                                             |-> OpenAI 兼容模型 API（可选）
-                                             `-> MCP HTTP 接口（可选，Bearer Token）
+顾客端 / 药房工作台 -> Nginx -> Spring Boot 模块化单体
+                                  |-> MySQL 8（库存账本、批次、订单、Outbox、审核记录）
+                                  |-> Redis 7（Lua 预约、限流、共享缓存）
+                                  |-> Kafka（药房订单链路、原有聊天 Topic）
+                                  |-> FastAPI + PaddleOCR（可选；产出待人工复核候选）
+                                  |-> OpenAI 兼容 API（可选；只读经营工具）
+                                  |-> WebSocket / STOMP（原有实时聊天）
+                                  `-> MCP HTTP 接口（可选，Bearer Token）
+
+预约：Redis Lua 原子预占 -> MySQL 请求记录与 Outbox -> Kafka -> 幂等消费者 -> MySQL FEFO 库存事务。
 ```
 
 ## Docker Compose 快速启动

@@ -1,0 +1,152 @@
+--- a/battery-driver.py
++++ b/battery-driver.py
+@@ -93,7 +93,8 @@
+     proc = run(["docker", "compose", "-p", project, *BASE_FILES,
+                 "--env-file", str(ENV_FILE), "exec", "-T", "mysql", "sh", "-c",
+                 f'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --default-character-set=utf8mb4 '
+-                f'-uroot --batch --skip-column-names -e "{query}"'], check=False, timeout=120)
++                f'-uroot --batch --skip-column-names hmdp -e "$1"', "sh", query],
++               check=False, timeout=120)
+     if proc.returncode != 0:
+         raise RuntimeError(f"SQL failed: {query} -> {proc.stderr[-400:]}")
+     return proc.stdout.strip()
+@@ -227,6 +227,12 @@
+ def boot_stack(project, files, wait=True):
+     ensure_app_jar()
+     ensure_kafka_volume(project)
+-    compose(project, files, "up", "-d", "--build", "--wait", timeout=1200)
++    up_args = ["up", "-d", "--build", "--wait"]
++    is_cache_stack = bool(files and str(ROOT / "deploy/verify/cache-invalidation.compose.override.yml") in files)
++    if is_cache_stack:
++        up_args.extend(["--scale", "backend=2"])
++    compose(project, files, *up_args, timeout=1200)
+-    if wait:
++    # The cache verifier probes each backend directly before using Nginx.
++    # Avoid startup 502s marking every upstream unavailable during readiness.
++    if wait and not is_cache_stack:
+         wait_api("http://127.0.0.1:18080", timeout=300)
+@@ -258,7 +261,7 @@
+ 
+ def p_load():
+     project = f"npc-load-{int(time.time())}"
+-    files = BASE_FILES
++    files = [*BASE_FILES, "-f", str(ROOT / "deploy/verify/load-test.compose.override.yml")]
+     load_ok = [False]
+     boot_stack(project, files)
+     try:
+@@ -280,19 +281,11 @@
+         if not report.exists():
+             raise RuntimeError("load-test script produced no report")
+         rep = json.loads(report.read_text(encoding="utf-8"))
+-        deadline = time.time() + 300
+-        while time.time() < deadline:
+-            pending = sql(project, f"SELECT COUNT(*) FROM seckill_request WHERE activity_id={activity_id} "
+-                                    f"AND status IN ('INITIALIZING','PROCESSING')")
+-            if pending.strip() == "0":
+-                break
+-            time.sleep(5)
+-        else:
+-            raise RuntimeError("reservation requests did not drain within 300s")
+         recon = OUT / "reservation-reconciliation.json"
+         run(["python3", "deploy/verify/reconcile-reservations.py", "--project", project,
+              "--activity-id", str(activity_id), "--max-success-orders", "100",
+-             "--expected-activity-stock", "100", "--output", str(recon)], timeout=600)
++             "--expected-activity-stock", "100", "--settlement-timeout-seconds", "300",
++             "--output", str(recon)], timeout=600)
+         rec = json.loads(recon.read_text(encoding="utf-8"))
+         (OUT / "load-activity.txt").write_text(
+             f"project={project}\nactivity_id={activity_id}\n", encoding="utf-8")
+@@ -340,4 +340,7 @@
+         r = run(["bash", "deploy/verify/redis-reservation-lua.sh", project], check=False, timeout=600)
+         results["redis_lua"] = r.returncode
+         # order lifecycle: cancel one, pickup another, end a second activity
++        # The load stack's backend can restart under load-test pressure; the
++        # first HTTP call after the non-HTTP sub-checks otherwise hits a 502.
++        wait_api("http://127.0.0.1:18080", timeout=300)
+         api = Api("http://127.0.0.1:18080")
+@@ -358,10 +366,14 @@
+         results["order_lifecycle"] = proc.returncode
+         # expired INITIALIZING recovery
+         fresh = Api("http://127.0.0.1:18080").login("19910009999")
+         fresh_uid = sql(project, "SELECT id FROM tb_user WHERE phone='19910009999'").strip()
+-        r = run(["bash", "deploy/verify/recover-expired-initializing-reservation.sh",
+-                 project, str(activity_id), fresh_uid], check=False, timeout=600)
++        # The load-test activity is intentionally sold out (100 successful
++        # reservations against 100 units). Recovery injection needs stock to
++        # be restored, so give it its own isolated activity with positive stock.
++        _, recovery_activity = make_activity(api, quantity=10, batch_qty=20, minutes=30)
++        r = run(["bash", "deploy/verify/recover-expired-initializing-reservation.sh",
++                 project, str(recovery_activity), fresh_uid], check=False, timeout=600)
+         results["expired_initializing"] = r.returncode
+         failed = [k for k, v in results.items() if v != 0]
+         if failed:
+             raise RuntimeError(f"fault-injection failures: {failed} (details: {results})")
+@@ -415,8 +419,13 @@
+ def p_cache():
+     project = f"npc-verify-cache-{int(time.time())}"
+     files = [*BASE_FILES, "-f", str(ROOT / "deploy/verify/cache-invalidation.compose.override.yml")]
+-    boot_stack(project, files)
+     try:
++        ensure_kafka_volume(project)
++        compose(project, files, "up", "-d", "mysql", "redis", "kafka", "--wait", timeout=1200)
+         import_seed(project, "db/demo/005-pharmacy-mvp-demo.sql")
++        # BloomFilterInitializer snapshots shops at backend startup. Seed the
++        # legal shop before starting Spring so the cache verifier can check
++        # for Bloom false negatives on both replicas.
++        boot_stack(project, files)
+         api = Api("http://127.0.0.1:18080")
+         api.token = api.login("19900000001")
+@@ -435,3 +439,11 @@
+         return {"report": json.loads(out.read_text(encoding="utf-8"))}
++    except Exception as error:
++        diagnostics = {}
++        for service in ("backend", "frontend", "mysql", "redis", "kafka"):
++            try:
++                diagnostics[service] = compose(project, files, "logs", "--tail=120", service)
++            except Exception as log_error:
++                diagnostics[service] = f"unable to collect logs: {log_error}"
++        raise RuntimeError(f"cache phase failed: {error}; container diagnostics: {diagnostics}") from error
+     finally:
+         down_stack(project, files, volumes=True)
+@@ -444,9 +454,39 @@
+     boot_stack(project, files)
+     try:
+         import_seed(project, "db/demo/006-ai-evaluation-fixtures.sql")
++        fixture_counts = sql(project, """
++SELECT CONCAT(
++ (SELECT COUNT(*) FROM tb_shop WHERE id IN (990010, 990020)), ':',
++ (SELECT COUNT(*) FROM tb_shop_owner so JOIN tb_user u ON u.id=so.user_id
++    WHERE (so.shop_id=990010 AND u.phone='19900000101')
++       OR (so.shop_id=990020 AND u.phone='19900000102')), ':',
++ (SELECT COUNT(*) FROM tb_shop_owner so JOIN tb_user u ON u.id=so.user_id
++    WHERE u.phone IN ('19900000101','19900000102')), ':',
++ (SELECT COUNT(*) FROM pharmacy_medicine WHERE id IN (9900101, 9900102, 9900201) AND enabled=TRUE), ':',
++ (SELECT COUNT(*) FROM pharmacy_medicine WHERE (id=9900101 AND store_id=990010 AND sale_category='OTC')
++    OR (id=9900102 AND store_id=990010 AND sale_category='OTC')
++    OR (id=9900201 AND store_id=990020 AND sale_category='OTC')), ':',
++ (SELECT COUNT(*) FROM inventory_batch WHERE id IN (9900101, 9900201)), ':',
++ (SELECT COUNT(*) FROM inventory_batch WHERE (id=9900101 AND store_id=990010 AND medicine_id=9900101)
++    OR (id=9900201 AND store_id=990020 AND medicine_id=9900201)), ':',
++ (SELECT COUNT(*) FROM stock_movement WHERE reference_id IN ('AI-EVAL-A-SALE-01', 'AI-EVAL-B-SALE-01')
++    AND movement_type='SALE_OUT' AND created_at >= CURRENT_TIMESTAMP - INTERVAL 30 DAY), ':',
++ (SELECT COALESCE(SUM(available_qty), 0) FROM inventory_batch WHERE id=9900101), ':',
++ (SELECT COALESCE(SUM(available_qty), 0) FROM inventory_batch WHERE id=9900201), ':',
++ (SELECT COALESCE(SUM(quantity), 0) FROM stock_movement WHERE reference_id='AI-EVAL-A-SALE-01'
++    AND movement_type='SALE_OUT' AND created_at >= CURRENT_TIMESTAMP - INTERVAL 30 DAY), ':',
++ (SELECT COALESCE(SUM(quantity), 0) FROM stock_movement WHERE reference_id='AI-EVAL-B-SALE-01'
++    AND movement_type='SALE_OUT' AND created_at >= CURRENT_TIMESTAMP - INTERVAL 30 DAY))
++""")
++        expected_fixture = "2:2:2:3:3:2:2:2:8:4:30:12"
++        if fixture_counts != expected_fixture:
++            raise RuntimeError(
++                "AI evaluation fixture preflight failed: "
++                f"expected {expected_fixture}, got {fixture_counts!r}"
++            )
+         api_a = Api("http://127.0.0.1:18080")
+-        token_a = api_a.login("19900000001")
+-        token_b = Api("http://127.0.0.1:18080").login("19900000002")
++        token_a = api_a.login("19900000101")
++        token_b = Api("http://127.0.0.1:18080").login("19900000102")
+         env2 = dict(ENV, NPC_AI_EVAL_TOKEN=token_a, NPC_AI_EVAL_STORE_B_TOKEN=token_b)
+         out = OUT / "ai-operations-evaluation.json"
+         proc = subprocess.run(["python3", "deploy/verify/ai-operations-evaluate.py",

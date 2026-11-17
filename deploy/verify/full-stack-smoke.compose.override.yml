@@ -1,0 +1,5 @@
+# Expose the synthetic login code only inside this disposable smoke-test stack.
+services:
+  backend:
+    environment:
+      APP_AUTH_EXPOSE_CODE: "true"

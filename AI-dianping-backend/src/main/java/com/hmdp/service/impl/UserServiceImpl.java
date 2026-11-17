@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.utils.RedisConstants.USER_SIGN_KEY;
@@ -47,6 +49,9 @@ import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
     private final UserMapper userMapper;
+
+    @Value("${APP_AUTH_EXPOSE_CODE:false}")
+    private boolean exposeLoginCode;
 
     public UserServiceImpl(UserMapper userMapper) {
         this.userMapper = userMapper;
@@ -67,7 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY + phone, Code, RedisConstants.LOGIN_CODE_TTL, TimeUnit.MINUTES);
         //5.发送验证码
         log.debug("发送验证码成功，验证码：{}", Code);
-        return Result.ok();
+        return exposeLoginCode ? Result.ok(Collections.singletonMap("code", Code)) : Result.ok();
     }
 
     @Override

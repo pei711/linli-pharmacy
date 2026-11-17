@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f1e7">
+  <meta name="description" content="邻药云社区药房预约服务">
+  <title>邻药云 · 附近药房</title>
+  <link rel="stylesheet" href="./css/pharmacy.css">
+  <link rel="stylesheet" href="./css/pharmacy-orders.css">
+  <script defer src="./js/pharmacy.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./pharmacy.html"><span class="brand-mark">邻</span><span>邻药云<small>NEIGHBOR PHARMACY</small></span></a>
+    <nav aria-label="主导航"><a class="active" href="#nearby">附近药房</a><a href="#activities">预约活动</a><a href="./pharmacy-admin.html">门店工作台 ↗</a></nav>
+    <button id="account-button" class="account-button" type="button"><span class="account-dot"></span><span id="account-label">登录 / 我的预约</span></button>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span></span> COMMUNITY CARE · NEAR YOU</div>
+        <h1 id="hero-title">附近药房，<em>安心有货。</em></h1>
+        <p>先看批次与有效期，再预约到店领取。每一份库存，都有真实门店和批次作支撑。</p>
+        <a class="hero-link" href="#nearby">看看身边的药房 <b>↓</b></a>
+      </div>
+      <div class="hero-still-life" aria-hidden="true">
+        <div class="sun-disc"></div><div class="leaf leaf-one"></div><div class="leaf leaf-two"></div>
+        <div class="bottle"><span class="bottle-cap"></span><span class="bottle-label">邻<br><small>CARE</small></span></div>
+        <div class="hero-stamp"><span>近邻</span><b>好药</b><span>可预约</span></div>
+        <div class="hero-caption">社区药房 · 批次可追溯</div>
+      </div>
+      <div class="hero-index">01 <span>—</span> 04</div>
+    </section>
+
+    <section id="nearby" class="nearby-section">
+      <div class="section-heading"><div><div class="eyebrow">FIND YOUR PHARMACY</div><h2>从身边开始</h2></div><p>支持附近门店筛选<br>距离与库存实时读取</p></div>
+      <form id="location-form" class="location-bar">
+        <label><span>经度</span><input id="longitude" name="longitude" type="number" step="any" value="118.0894" required></label>
+        <label><span>纬度</span><input id="latitude" name="latitude" type="number" step="any" value="24.4798" required></label>
+        <label class="radius-field"><span>搜索范围</span><select id="radius"><option value="3">3 公里</option><option value="5" selected>5 公里</option><option value="10">10 公里</option><option value="20">20 公里</option></select></label>
+        <button class="button search-button" type="submit">搜索药房 <span>↗</span></button>
+        <button id="use-location" class="location-icon" type="button" aria-label="使用当前定位" title="使用当前定位">◎</button>
+      </form>
+      <div class="content-grid">
+        <aside class="store-column"><div class="list-heading"><span>附近门店</span><span id="store-count" class="muted-count">—</span></div><div id="store-list" class="store-list"><div class="skeleton-card"></div><div class="skeleton-card"></div></div></aside>
+        <div class="catalog-column">
+          <div id="selected-store" class="selected-store empty-state"><span class="empty-icon">⌖</span><div><h3>选择一家附近药房</h3><p>查看门店商品、可预约数量与活动时间</p></div></div>
+          <div id="medicine-list" class="medicine-grid"></div>
+          <div id="activities" class="activities-wrap"><div class="list-heading"><span>限量预约</span><span id="activity-count" class="muted-count">先选门店</span></div><div id="activity-list" class="activity-list"><div class="activity-empty">可预约活动会显示在这里。</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="promise-strip"><div><b>01</b><span>批次库存<br>真实支撑</span></div><div><b>02</b><span>按有效期<br>先进先出</span></div><div><b>03</b><span>线上预约<br>门店核销</span></div><p>邻近照护，从一份清楚的库存开始。</p></section>
+    <footer><a class="brand footer-brand" href="./pharmacy.html"><span class="brand-mark">邻</span><span>邻药云<small>NEIGHBOR PHARMACY</small></span></a><span>药品信息与活动由门店维护。平台不提供诊断、处方或用药剂量建议。</span><a href="./pharmacy-admin.html">门店工作台 ↗</a></footer>
+  </main>
+
+  <dialog id="login-dialog" class="dialog">
+    <form method="dialog" class="dialog-close"><button aria-label="关闭">×</button></form>
+    <div class="eyebrow">YOUR NEIGHBORHOOD ACCOUNT</div><h2>登录后开始预约</h2><p>使用手机号验证码登录，预约结果会绑定到当前账号。</p>
+    <form id="login-form" class="login-form"><label>手机号<input id="login-phone" inputmode="tel" maxlength="11" autocomplete="tel" placeholder="输入手机号" required></label><div class="code-row"><label>验证码<input id="login-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位验证码" required></label><button id="send-code" class="button light-button" type="button">获取验证码</button></div><div id="login-message" class="form-message" role="status" aria-live="polite"></div><button class="button search-button full-button" type="submit">登录邻药云 <span>↗</span></button></form>
+  </dialog>
+  <dialog id="orders-dialog" class="dialog orders-dialog">
+    <form method="dialog" class="dialog-close"><button aria-label="关闭">×</button></form>
+    <div class="eyebrow">YOUR RESERVATIONS</div><h2>我的预约</h2><p>订单状态来自门店库存与核销记录。</p><button id="logout-button" class="cancel-order" type="button">退出登录</button>
+    <div id="orders-list" class="orders-list"><div class="empty-note">正在读取订单…</div></div>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

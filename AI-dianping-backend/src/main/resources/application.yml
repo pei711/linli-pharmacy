@@ -1,6 +1,10 @@
 spring:
   application:
     name: hm-dianping
+  flyway:
+    enabled: ${PHARMACY_FLYWAY_ENABLED:false}
+    baseline-on-migrate: true
+    baseline-version: 0
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3307/hmdp?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -28,6 +32,9 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 3
+      properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 120000
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP:merchant-chat-persistence}
       auto-offset-reset: earliest
@@ -37,8 +44,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 50MB
-      max-request-size: 60MB
+      max-file-size: 10MB
+      max-request-size: 11MB
 mybatis-plus:
   type-aliases-package: com.hmdp.entity # 别名扫描包
 logging:
@@ -47,6 +54,21 @@ logging:
 server:
   port: 8081
 app:
+  pharmacy:
+    ocr:
+      service-url: ${OCR_SERVICE_URL:http://localhost:8090}
+    seckill:
+      enabled: ${PHARMACY_SECKILL_ENABLED:false}
+      request-ttl-seconds: ${PHARMACY_REQUEST_TTL_SECONDS:120}
+      activity-rate-per-second: ${PHARMACY_ACTIVITY_RATE_PER_SECOND:500}
+      ip-rate-per-second: ${PHARMACY_IP_RATE_PER_SECOND:10}
+      user-rate-per-second: ${PHARMACY_USER_RATE_PER_SECOND:5}
+      reconciliation-delay-ms: ${PHARMACY_RECONCILIATION_DELAY_MS:5000}
+      outbox-relay-delay-ms: ${PHARMACY_OUTBOX_RELAY_DELAY_MS:1000}
+      requested-topic: ${PHARMACY_REQUESTED_TOPIC:pharmacy-seckill-requested}
+      order-topic: ${PHARMACY_ORDER_TOPIC:pharmacy-order-events}
+  auth:
+    expose-code: ${APP_AUTH_EXPOSE_CODE:false}
   mcp:
     api-token: ${MCP_API_TOKEN:}
   chat:

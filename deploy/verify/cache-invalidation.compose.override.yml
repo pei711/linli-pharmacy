@@ -1,0 +1,13 @@
+# Use only for the two-backend cache verification stack. The smaller heap keeps
+# both replicas within the documented 1,600 MiB aggregate container budget.
+services:
+  backend:
+    # Two Spring replicas need room for native/JIT/Netty overhead in addition
+    # to the Java heap. The prior 320 MiB cap leaves little margin after startup;
+    # this raises each replica while keeping the complete stack at 1,600 MiB.
+    mem_limit: 360m
+    memswap_limit: 360m
+    cpus: 0.5
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xms32m -Xmx144m -XX:MaxMetaspaceSize=128m"
+      APP_AUTH_EXPOSE_CODE: "true"

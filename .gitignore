@@ -19,12 +19,27 @@
 
 # Local configuration and credentials
 .env
+.env.*
+!.env.example
 *.local
+*.pem
+*.key
+*.p12
+*.jks
+*.sqlite
+*.sqlite3
+*.db
+/deploy/app.jar
 
 # Runtime and editor files
 *.log
 .vscode/
+__pycache__/
+*.py[cod]
 
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Handoff notes and private recovery metadata
+.handoff/

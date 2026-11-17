@@ -196,3 +196,19 @@ tbody tr:hover{background:rgba(252,238,10,.05)}
 @keyframes cyber-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes cyber-flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.5}94%{opacity:1}96%{opacity:.72}97%{opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- 对比度修复（截图核查后补丁） ---------- */
+.store-card.selected{background:#15151f!important;border-color:var(--yl)}
+.store-card.selected .store-name{color:var(--yl)!important}
+.store-card.selected .store-distance{color:var(--cy)!important}
+.hero-stamp{background:#101016!important;border-color:rgba(252,238,10,.65)!important;color:#fff!important}
+.hero-stamp b{color:var(--yl)!important}
+.hero-caption{color:#c9c9cf!important;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.rail-bottom{background:#101016!important;color:var(--ink)!important;border:1px solid rgba(0,240,255,.25)}
+.rail-bottom p{color:var(--ink)!important}
+.rail-bottom small{color:var(--muted)!important}
+.rail-bottom .leaf{display:none!important}
+.form-card-head .form-number,.form-number{background:var(--yl)!important;color:#000!important}
+.form-card-head .peach-number,.peach-number{background:var(--rd)!important;color:#fff!important}
+input[type="file"]{color:var(--muted)}
+input[type="file"]::file-selector-button{background:#101014;color:var(--cy);border:1px solid rgba(0,240,255,.45);padding:5px 12px;font:inherit;cursor:pointer}

@@ -12,18 +12,21 @@
 services:
   backend:
     mem_limit: 640m
+    memswap_limit: 640m
     environment:
       AI_BASE_URL: ${AI_BASE_URL:-https://api.deepseek.com}
       AI_MODEL_NAME: ${AI_MODEL_NAME:-deepseek-v4-flash}
       JAVA_TOOL_OPTIONS: "-Xms128m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:+UseG1GC -Dserver.tomcat.threads.max=300 -Dserver.tomcat.accept-count=200 -Dspring.datasource.hikari.maximum-pool-size=24 -Dspring.datasource.hikari.minimum-idle=10"
   mysql:
     mem_limit: 384m
+    memswap_limit: 384m
     command: ["--innodb-buffer-pool-size=192M", "--max-connections=60", "--performance-schema=OFF"]
   kafka:
     environment:
       KAFKA_HEAP_OPTS: "-Xms128m -Xmx288m"
   redis:
     mem_limit: 128m
+    memswap_limit: 128m
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "96mb", "--maxmemory-policy", "noeviction"]
   frontend:
     ports: !override

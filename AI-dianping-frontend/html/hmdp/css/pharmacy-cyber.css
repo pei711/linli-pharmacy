@@ -1,0 +1,198 @@
+@charset "UTF-8";
+/* ============================================================
+   邻里药房 · Cyberpunk 2077 主题覆盖层
+   加载在 pharmacy.css / pharmacy-admin.css 之后，仅换肤不动结构与逻辑
+   ============================================================ */
+:root{
+  color-scheme:dark;
+  --yl:#fcee0a; --cy:#00f0ff; --rd:#ff003c;
+  --paper:#08080b; --paper-2:#101016; --white:#101016;
+  --ink:#f2f2f0; --muted:#a7a7ad; --line:rgba(252,238,10,.26);
+  --green:#fcee0a; --green-2:rgba(0,240,255,.13); --orange:#ff003c; --sand:#17171f;
+  --mint:rgba(0,240,255,.13); --peach:rgba(255,0,60,.14); --coral:#ff003c; --lilac:rgba(252,238,10,.13);
+  --shadow:0 18px 44px rgba(0,0,0,.55);
+}
+html{background:#08080b}
+body{background:#08080b!important;color:var(--ink)}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(640px 420px at 10% -5%,rgba(0,240,255,.12),transparent 60%),
+  radial-gradient(760px 520px at 96% 108%,rgba(255,0,60,.10),transparent 60%),
+  radial-gradient(560px 380px at 86% -10%,rgba(252,238,10,.06),transparent 60%)}
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),
+  linear-gradient(rgba(252,238,10,.04) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(252,238,10,.04) 1px,transparent 1px);
+  background-size:auto,46px 46px,46px 46px}
+.topbar,.layout,.main,main,footer{position:relative;z-index:1}
+::selection{background:var(--yl);color:#000}
+a:hover{color:#8ff7ff}
+
+/* ---------- 顶部警戒条 ---------- */
+.topbar{border-top:6px solid transparent;border-image:repeating-linear-gradient(45deg,var(--yl) 0 18px,#0a0a0a 18px 36px) 6}
+
+/* ---------- C 端 ---------- */
+.topbar{background:rgba(8,8,11,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}
+.brand{color:#fff}
+.brand small{color:var(--cy);font-family:ui-monospace,Menlo,Consolas,monospace}
+.brand-mark{background:var(--yl);color:#000;border-radius:0;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));animation:cyber-flicker 4.4s infinite}
+.topbar nav{color:var(--muted)}
+.topbar nav a:hover,.topbar nav .active{color:var(--yl)}
+.topbar nav .active:after{background:var(--yl);box-shadow:0 0 10px rgba(252,238,10,.8)}
+.account-button{background:#101014;border:1px solid rgba(0,240,255,.45);color:var(--ink)}
+.account-button:hover{border-color:var(--cy);box-shadow:0 0 14px rgba(0,240,255,.3)}
+.account-dot{background:var(--cy);box-shadow:0 0 8px rgba(0,240,255,.9)}
+.hero h1{color:#fff}
+.hero h1 em{color:var(--yl);font-style:normal;text-shadow:0 0 18px rgba(252,238,10,.45)}
+.eyebrow{color:var(--cy);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.22em}
+.eyebrow span{background:var(--rd);box-shadow:0 0 10px rgba(255,0,60,.7)}
+.hero-copy>p{color:var(--muted)}
+.hero-link{color:#000;background:var(--yl);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);font-weight:800}
+.hero-link:hover{background:var(--cy);color:#000}
+.sun-disc{background:radial-gradient(circle,var(--yl) 0%,rgba(252,238,10,.25) 62%,transparent 72%);box-shadow:0 0 60px rgba(252,238,10,.35)}
+.leaf{background:rgba(0,240,255,.35)}
+.bottle{background:linear-gradient(160deg,#1b1b24,#0c0c12);border:1px solid rgba(0,240,255,.4)}
+.bottle-cap{background:var(--rd)}
+.bottle-label{background:#12121a;color:var(--cy);border:1px solid rgba(0,240,255,.35)}
+.bottle-label small{color:var(--muted)}
+.hero-stamp{border-color:rgba(252,238,10,.6);color:var(--yl)}
+.hero-stamp b{color:#fff}
+.hero-caption,.hero-index{color:var(--muted)}
+.hero-index span{background:rgba(0,240,255,.35)}
+.section-heading h2{color:#fff}
+.section-heading>p,.muted-count{color:var(--muted)}
+.location-bar{background:rgba(16,16,22,.88);border:1px solid var(--line);box-shadow:var(--shadow)}
+.location-bar label span{color:var(--cy)}
+.location-bar input,.location-bar select,.login-form input,.assistant-input-row input,
+.toolbar input,.form-card input,.form-card select,.login-dialog input,.input,
+.ocr-upload-form input,.ocr-confirm-form input,.ocr-item-fields input,.ocr-reject-row input,.fefo-panel select{
+  background:#0c0c11;color:var(--ink);border:1px solid rgba(0,240,255,.32)}
+.location-bar input:focus,.location-bar select:focus,.login-form input:focus,.assistant-input-row input:focus,
+.toolbar input:focus,.form-card input:focus,.form-card select:focus,.login-dialog input:focus,
+.ocr-upload-form input:focus,.ocr-confirm-form input:focus,.ocr-item-fields input:focus,.fefo-panel select:focus{
+  outline:none;border-color:var(--yl);box-shadow:0 0 0 1px rgba(252,238,10,.5),0 0 16px rgba(252,238,10,.18)}
+.button,.search-button,.reserve-button,.full-button,.welcome-cta{
+  background:var(--yl);color:#000;font-weight:800;border:1px solid var(--yl);
+  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+.button:hover,.search-button:hover,.reserve-button:hover,.full-button:hover,.welcome-cta:hover{
+  background:var(--cy);border-color:var(--cy);color:#000;box-shadow:0 0 20px rgba(0,240,255,.45)}
+.button:disabled,.reserve-button:disabled,.assistant-input-row .button:disabled,
+.ocr-upload-form .button:disabled,.ocr-confirm-form button:disabled{background:#26262e;color:#6d6d75;border-color:#26262e;box-shadow:none}
+.location-icon,.light-button,.code-button,.quiet{
+  background:#101014;color:var(--cy);border:1px solid rgba(0,240,255,.45)}
+.location-icon:hover,.light-button:hover,.code-button:hover,.quiet:hover{border-color:var(--cy);box-shadow:0 0 14px rgba(0,240,255,.3);color:#8ff7ff}
+.store-card,.medicine-card,.activity-card,.selected-store,.order-card{
+  background:rgba(16,16,22,.9);border:1px solid rgba(0,240,255,.22);box-shadow:0 10px 30px rgba(0,0,0,.45);
+  animation:cyber-rise .6s cubic-bezier(.2,.8,.25,1) both}
+.store-card:hover,.store-card.selected{border-color:var(--yl);box-shadow:5px 5px 0 rgba(252,238,10,.8),0 16px 40px rgba(0,0,0,.6)}
+.store-name,.medicine-card h4,.activity-card h3,.selected-store h3{color:#fff}
+.store-distance{color:var(--yl);font-family:ui-monospace,Menlo,Consolas,monospace}
+.store-address,.store-meta,.medicine-spec,.activity-details,.selected-store p,.order-meta{color:var(--muted)}
+.store-meta .mini-dot{background:var(--cy);box-shadow:0 0 7px rgba(0,240,255,.9)}
+.tag{background:rgba(0,240,255,.1);color:var(--cy);border:1px solid rgba(0,240,255,.45)}
+.tag.supply{background:rgba(255,0,60,.12);color:#ff7d9c;border-color:rgba(255,0,60,.5)}
+.stock-count,.activity-stock{color:var(--muted)}
+.stock-count strong,.activity-stock strong{color:var(--yl)}
+.activity-kicker{color:var(--rd);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.14em}
+.order-status{color:var(--yl)}
+.cancel-order{color:#ff7d9c}
+.promise-strip{background:rgba(16,16,22,.85);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.promise-strip b{color:var(--yl)}
+.promise-strip span{color:#fff}
+.promise-strip p{color:var(--muted)}
+.skeleton-card{background:linear-gradient(100deg,#101016 40%,#1b1b26 50%,#101016 60%);background-size:200% 100%}
+.empty-icon{color:var(--cy)}
+.activity-empty,.empty-note{color:var(--muted)}
+footer{color:var(--muted)}
+footer .brand-mark{background:var(--yl);color:#000}
+.dialog,.login-dialog,.orders-dialog{background:#101016;color:var(--ink);border:1px solid rgba(252,238,10,.55);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 24px 70px rgba(0,0,0,.7),0 0 34px rgba(252,238,10,.12)}
+.dialog::backdrop,.login-dialog::backdrop{background:rgba(3,3,6,.72);backdrop-filter:blur(3px)}
+.dialog h2,.login-dialog h2{color:#fff}
+.dialog>p,.login-dialog>p,.login-dialog form>p{color:var(--muted)}
+.dialog-close button{color:var(--muted)}
+.dialog-close button:hover{color:var(--yl)}
+.form-message{color:var(--cy)}
+.form-message.error{color:#ff7d9c}
+.toast{background:#101016;color:#fff;border:1px solid var(--yl);box-shadow:0 0 22px rgba(252,238,10,.25)}
+
+/* ---------- B 端 ---------- */
+.rail{background:#0b0b10;border-right:1px solid var(--line)}
+.brand-icon{background:var(--yl);color:#000;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));animation:cyber-flicker 4.4s infinite}
+.brand-copy small,.rail-caption,.kicker{color:var(--cy);font-family:ui-monospace,Menlo,Consolas,monospace}
+.rail-link{color:var(--muted)}
+.rail-link:hover{color:#fff;background:rgba(0,240,255,.07)}
+.rail-link.selected{background:var(--yl);color:#000;font-weight:800}
+.rail-link.selected span{color:#000}
+.rail-bottom p{color:var(--muted)}
+.rail-bottom .leaf{background:rgba(0,240,255,.35)}
+.back-home{color:var(--cy)}
+.top h1{color:#fff}
+.auth-state{color:var(--muted);border:1px solid rgba(0,240,255,.3);background:#101014}
+.auth-state.on{color:var(--yl);border-color:rgba(252,238,10,.55)}
+.login-button{background:var(--yl);color:#000;font-weight:800;border:1px solid var(--yl)}
+.login-button:hover{background:var(--cy);border-color:var(--cy)}
+.welcome{background:linear-gradient(120deg,rgba(252,238,10,.10),rgba(0,240,255,.05) 55%,rgba(255,0,60,.08));border:1px solid rgba(252,238,10,.4)}
+.welcome h2{color:#fff}
+.welcome h2 em{color:var(--yl);font-style:normal}
+.welcome-copy>p{color:var(--muted)}
+.welcome-pill{background:#101014;border:1px solid rgba(0,240,255,.4);color:var(--cy)}
+.welcome-pill i{background:var(--cy);box-shadow:0 0 8px rgba(0,240,255,.9)}
+.visual-card{background:#12121a;border:1px solid rgba(0,240,255,.35);box-shadow:var(--shadow)}
+.visual-card strong{color:#fff}
+.visual-flower{color:var(--yl)}
+.sun{background:radial-gradient(circle,var(--yl) 0%,rgba(252,238,10,.2) 65%,transparent 72%)}
+.visual-lines i{background:rgba(0,240,255,.35)}
+.visual-label{color:var(--muted)}
+.visual-dot{background:var(--rd);box-shadow:0 0 9px rgba(255,0,60,.8)}
+.quick-stats>div{background:rgba(16,16,22,.9);border:1px solid rgba(0,240,255,.22)}
+.quick-stats b{color:#fff}
+.quick-stats small{color:var(--muted)}
+.quick-stats a{color:var(--cy)}
+.stat-icon.mint{background:rgba(0,240,255,.13);color:var(--cy)}
+.stat-icon.peach{background:rgba(255,0,60,.13);color:#ff7d9c}
+.stat-icon.lilac{background:rgba(252,238,10,.13);color:var(--yl)}
+.section-title h2{color:#fff}
+.section-title p{color:var(--muted)}
+.section-mark{background:var(--yl);box-shadow:0 0 10px rgba(252,238,10,.6)}
+.table-shell,.form-card,.fefo-panel,.assistant-card,.ocr-card,.empty-state{
+  background:rgba(16,16,22,.9);border:1px solid rgba(0,240,255,.22);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.table-meta{color:var(--muted)}
+table{color:var(--ink)}
+th{color:var(--yl);border-bottom:1px solid rgba(252,238,10,.4);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em}
+td{border-bottom:1px solid rgba(0,240,255,.12)}
+tbody tr:hover{background:rgba(252,238,10,.05)}
+.medicine-name{color:#fff}
+.expire-soon{color:#ff7d9c}
+.form-card-head h3{color:#fff}
+.form-card-head p{color:var(--muted)}
+.form-number{background:var(--yl);color:#000}
+.peach-number{background:var(--rd);color:#fff}
+.form-card>label,.field-row label,.login-dialog label,.toolbar label,
+.assistant-card form label,.ocr-upload-form label,.ocr-confirm-form label,.ocr-item-fields label,.fefo-panel label{color:var(--muted)}
+.button.dark,.dark{background:#101014;color:var(--cy);border:1px solid rgba(0,240,255,.55)}
+.button.dark:hover,.dark:hover{background:var(--cy);color:#000;box-shadow:0 0 18px rgba(0,240,255,.4)}
+.button.terracotta,.terracotta{background:var(--rd);color:#fff;border:1px solid var(--rd)}
+.button.terracotta:hover,.terracotta:hover{background:#ff2f57;color:#fff;box-shadow:0 0 18px rgba(255,0,60,.4)}
+.compliance-note{background:rgba(255,0,60,.08);border:1px solid rgba(255,0,60,.4);color:var(--muted)}
+.compliance-note b{color:#ff7d9c}
+.assistant-intro b{color:#fff}
+.assistant-intro p,.assistant-disclaimer{color:var(--muted)}
+.assistant-spark{color:var(--yl);text-shadow:0 0 12px rgba(252,238,10,.7)}
+.assistant-answer{background:#0c0c11;border:1px solid rgba(0,240,255,.25);color:var(--ink)}
+.fefo-chip{background:rgba(0,240,255,.1);color:var(--cy);border:1px solid rgba(0,240,255,.4)}
+.fefo-panel #fefo-result.error{color:#ff7d9c}
+.ocr-sku-matches button{background:#101014;color:var(--cy);border:1px solid rgba(0,240,255,.4)}
+.ocr-sku-matches button:hover{border-color:var(--cy);box-shadow:0 0 12px rgba(0,240,255,.3)}
+.ocr-candidate-summary pre{background:#0c0c11;color:var(--cy);border:1px solid rgba(0,240,255,.2)}
+.ocr-review-note{color:var(--muted)}
+.loading{color:var(--yl)}
+
+/* ---------- 平台首页入口卡 ---------- */
+.pharmacy-entry{background:#101016!important;border:1px solid rgba(252,238,10,.55)!important;color:#f2f2f0!important;box-shadow:0 0 24px rgba(252,238,10,.12)}
+.pharmacy-entry small{color:#a7a7ad!important}
+.pharmacy-entry strong{color:var(--yl)!important}
+.pharmacy-entry-mark{background:var(--yl);color:#000}
+
+/* ---------- 动效 ---------- */
+@keyframes cyber-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes cyber-flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.5}94%{opacity:1}96%{opacity:.72}97%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

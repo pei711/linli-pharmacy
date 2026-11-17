@@ -4,11 +4,27 @@
 # - Frontend published on public port 80 (the base file binds 127.0.0.1:18080).
 # - Real AI model settings come from .env (AI_API_KEY/AI_BASE_URL/AI_MODEL_NAME);
 #   the base file only wires AI_API_KEY, so the other two are added here.
+# - Concurrency/memory tuning (2026-11-18) lives ONLY in this overlay so the
+#   verification stacks keep the battery-validated base configuration:
+#   backend heap 192m->384m + Tomcat threads 300 + Hikari pool 24 (via -D props),
+#   MySQL buffer pool 64M->192M + max-connections 60, Kafka heap ->288m,
+#   Redis maxmemory 32mb->96mb. Container limits total 1392m -> 1712m.
 services:
   backend:
+    mem_limit: 640m
     environment:
       AI_BASE_URL: ${AI_BASE_URL:-https://api.deepseek.com}
       AI_MODEL_NAME: ${AI_MODEL_NAME:-deepseek-v4-flash}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:+UseG1GC -Dserver.tomcat.threads.max=300 -Dserver.tomcat.accept-count=200 -Dspring.datasource.hikari.maximum-pool-size=24 -Dspring.datasource.hikari.minimum-idle=10"
+  mysql:
+    mem_limit: 384m
+    command: ["--innodb-buffer-pool-size=192M", "--max-connections=60", "--performance-schema=OFF"]
+  kafka:
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms128m -Xmx288m"
+  redis:
+    mem_limit: 128m
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "96mb", "--maxmemory-policy", "noeviction"]
   frontend:
     ports: !override
       - "80:80"

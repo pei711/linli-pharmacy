@@ -1,65 +1,65 @@
-# Neighborhood Pharmacy — pharmacy reservation and operations platform
+# 邻里药房 Neighborhood Pharmacy
 
-An incremental pharmacy platform based on `linli-zhiying`. The isolated test deployment currently includes nearby-pharmacy discovery, batch-backed OTC reservation, Kafka order processing, FEFO inventory, a Caffeine + Redis shop cache, an owner workspace, and a rule-based pharmacy operations assistant. OCR photo recognition is implemented as an optional FastAPI service with an audited human-confirmation path; real PaddleOCR inference has not yet been run on the 2 GiB test server.
+基于 `linli-zhiying` 增量改造的社区智慧药房平台。隔离测试环境已运行附近门店查询、批次支撑的 OTC 预约、Kafka 异步订单、FEFO 库存、Caffeine + Redis 门店缓存和门店工作台。经营助手已接入真实模型工具调用（生产环境实测来源为 `LANGCHAIN4J_AGENT`），规则摘要仅作降级路径；OCR 候选复核与正式入库链路已接入，但服务器尚未运行真实 PaddleOCR 模型。
 
-[简体中文版](README.zh-CN.md)
+[English](README.en.md)
 
-## Implemented and verified
+## 已实现并验证
 
-- User discovery of nearby stores, medicine catalogs, and published activities.
-- Server-authenticated, request-idempotent Redis Lua reservations backed by MySQL inventory batches.
-- Outbox-to-Kafka order creation, consumer idempotency, order status lookup, cancellation, and pickup confirmation.
-- Additive Flyway migrations, FEFO batch locking, stock reservations, and inventory movements.
-- Bounded Caffeine local cache with Redis, versioned invalidation, and Pub/Sub for legacy and pharmacy catalogs; Bloom initialization fails open.
-- Store-owner inventory and catalog management, FEFO view, OCR candidate upload/review UI, and a read-only operations assistant.
-- OCR candidate persistence, store-scoped SKU suggestions, reviewer correction audit, and transactional confirmation into batch inventory and `INBOUND` movement.
+- 用户按经纬度查找药房、查看商品与已发布活动。
+- 使用服务端登录身份、requestId 幂等和 Redis Lua 预约；MySQL 批次库存是最终账本。
+- Outbox 投递 Kafka 异步创建订单，支持查单、取消和门店核销。
+- Flyway 增量迁移、FEFO 批次分配、库存预留与流水。
+- 有界 Caffeine 本地缓存、Redis 共享缓存和 Pub/Sub 失效；布隆过滤器初始化失败时 fail-open。
+- 门店商品与库存工作台、OCR 候选字段与 SKU 建议、店主人工复核审计及事务入库。
+- 药房经营助手按门店读取库存与出库流水；模型不可用时返回标记为 `RULES_FALLBACK` 的规则摘要。
 
-The synthetic demo account uses phone `19900000001` and store ID `900010`. The isolated test Compose stack can return a temporary demo verification code; this option is off by default. The production deployment is publicly available at http://111.230.167.35/ . The current tested server stack uses a 1,898 MiB host-use ceiling and 1,600 MiB aggregate container-cap budget.
+演示账号为合成手机号 `19900000001`，门店 ID `900010`；商品和批次均为演示数据。只有隔离测试 Compose 显式回传临时验证码；应用默认关闭。生产环境已部署于腾讯云并开放公网访问：http://111.230.167.35/ 。
 
-The authenticated OCR upload/review/receipt path was integration-tested with an explicit mock OCR upstream; this does not measure OCR recognition accuracy. The OCR extraction/PDF rule suite has 15 tests, including 20 synthetic supplier-text cases, delimited multi-item tables, specification, and purchase price fields. Text-based PDFs can be parsed into review candidates; real PaddleOCR inference, image-field accuracy, and runtime memory peak remain unverified. The server verification battery passed 9/9 on 2026-11-18: full-stack smoke, the 1,000-user load test (100 successes / 900 sold out, full inventory reconciliation), Kafka fault injection (duplicate consumption, offset interruption, DLT replay, outbox recovery, order lifecycle), MySQL outage, cache invalidation, the AI operations evaluation (20/20 against the real model), and production restart. The operations assistant was verified on the production deployment answering with real model tool calls (`LANGCHAIN4J_AGENT`); `RULES_FALLBACK` remains only as the degradation path. Prescription medicines are not eligible for online reservations.
+OCR 后端经 mock 上游验证了上传、候选持久化、SKU 建议、人工确认、库存与流水事务及重复确认拒绝；该测试不代表真实 OCR 准确率。OCR 提取/PDF 规则测试共 15 项，包含 20 份合成供应商文本样例、明确分隔的多商品表格及规格/采购单价字段；扫描版 PDF 的真实 PaddleOCR 推理、图像字段准确率和运行峰值尚未实测。2026-11-18 服务器端验证电池 9/9 全部通过：全栈冒烟、1000 用户压测（100 成功 / 900 售罄，库存对账全过）、Kafka 故障注入（重复消费、Offset 中断、DLT 重投、Outbox 恢复、订单生命周期）、MySQL 中断、缓存失效、AI 经营评估 20/20（真实模型）与生产重启；生产环境经营助手已实测为真实模型工具调用。服务器主机内存使用上限为 1,898 MiB，Compose 容器硬限额预算为 1,600 MiB。处方药不可参加线上预约。
 
-## Retained upstream features
+## 原项目保留能力
 
-- Browse local shops and categories, view shop details, and discover nearby shops.
-- Explore posts, likes, follows, check-ins, coupons, and flash-sale orders.
-- Create and review restaurant reservations while signed in.
-- Generate review summaries, reply drafts, blog drafts, coupon copy, and short-video scripts with configurable AI Skills.
-- Use the signed-in AI consultant, which can call the application's business tools. Actions such as reservation creation still run through the authenticated user flow.
-- Start real-time customer-to-shop conversations from a shop page. Kafka `push-topic` handles live delivery while `store-topic` persists messages asynchronously, decoupling delivery from storage.
-- Optionally expose read-only shop and voucher lookup tools over MCP. The MCP endpoint is disabled until `MCP_API_TOKEN` is set.
+- 浏览店铺和分类、查看店铺详情、发现附近店铺。
+- 浏览探店笔记，支持点赞、关注、签到、优惠券和秒杀订单等功能。
+- 登录后创建和查看店铺预约。
+- 使用可配置的 AI Skills 生成评价摘要、回复草稿、探店笔记草稿、优惠券文案和短视频脚本。
+- 登录后的 AI 商家顾问可以调用业务工具；预约创建仍走当前登录用户的业务流程。
+- 用户可从店铺详情发起实时咨询；WebSocket 接收消息，Kafka 通过 `push-topic` 实时推送、`store-topic` 异步写入 MySQL，解耦消息投递与持久化。
+- 可选开启只读 MCP 查询接口，用于查询店铺、分类和优惠券。配置 `MCP_API_TOKEN` 前，MCP 接口默认关闭。
 
-## Architecture
+## 架构
 
 ```text
-Customer / pharmacy workspace -> Nginx -> Spring Boot modular monolith
-                                           |-> MySQL 8 (inventory ledger, batches, orders, outbox, audit)
-                                           |-> Redis 7 (Lua reservation, rate limits, shared cache)
-                                           |-> Kafka (pharmacy order chain and retained chat topics)
-                                           |-> FastAPI + PaddleOCR (optional; human-reviewed candidates)
-                                           |-> OpenAI-compatible API (optional; read-only operations tools)
-                                           |-> WebSocket / STOMP (retained real-time chat)
-                                           `-> MCP HTTP endpoint (optional, bearer token)
+顾客端 / 药房工作台 -> Nginx -> Spring Boot 模块化单体
+                                  |-> MySQL 8（库存账本、批次、订单、Outbox、审核记录）
+                                  |-> Redis 7（Lua 预约、限流、共享缓存）
+                                  |-> Kafka（药房订单链路、原有聊天 Topic）
+                                  |-> FastAPI + PaddleOCR（可选；产出待人工复核候选）
+                                  |-> OpenAI 兼容 API（可选；只读经营工具）
+                                  |-> WebSocket / STOMP（原有实时聊天）
+                                  `-> MCP HTTP 接口（可选，Bearer Token）
 
-Reservation: Redis Lua pre-reservation -> MySQL request + outbox -> Kafka -> idempotent consumer -> MySQL FEFO transaction.
+预约：Redis Lua 原子预占 -> MySQL 请求记录与 Outbox -> Kafka -> 幂等消费者 -> MySQL FEFO 库存事务。
 ```
 
-## Quick start with Docker Compose
+## Docker Compose 快速启动
 
-Requirements: Docker Desktop with Compose v2. An AI provider key is optional; without one, browsing features still work and AI calls will not return generated content.
+需要 Docker Desktop 和 Compose v2。AI 模型密钥是可选的；不配置密钥时，浏览等功能仍可使用，但 AI 调用无法生成内容。
 
 ```bash
 cp .env.example .env
-# Edit .env and set your DeepSeek API key to use chat and AI Skills.
+# 编辑 .env，填入 DeepSeek API Key 后即可使用聊天和 AI Skills。
 docker compose up --build
 ```
 
-Open <http://localhost:8080>. The API is proxied through the same origin. MySQL is available on `127.0.0.1:3307`; Redis is only exposed inside the Compose network.
+打开 <http://localhost:8080>。前端通过同源地址访问后端。MySQL 映射到 `127.0.0.1:3307`；Redis 只在 Compose 网络内部开放。
 
-The first startup initializes the schema and small, synthetic shop/category records. MySQL only runs files under `db/mysql` when its data volume is empty. To reset this demo database and its Redis data, run `docker compose down -v` and start it again.
+首次启动会创建表结构和少量合成店铺/分类演示数据。MySQL 数据卷非空后不会再次执行初始化脚本。要重置演示数据库和 Redis 数据，运行 `docker compose down -v` 后重新启动。
 
-## Run the backend without Docker
+## 不使用 Docker 运行后端
 
-Use Java 17+, Maven 3.9+, MySQL 8+, Redis 7+, and Kafka. Create a database and apply these files in order:
+需要 Java 17+、Maven 3.9+、MySQL 8+、Redis 7+ 和 Kafka。创建数据库后，按顺序执行：
 
 ```text
 db/mysql/001-schema.sql
@@ -67,68 +67,68 @@ db/mysql/002-demo-data.sql
 db/mysql/003-chat.sql
 ```
 
-Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PORT`, and `KAFKA_BOOTSTRAP_SERVERS` as needed, then run:
+按需设置 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`REDIS_HOST`、`REDIS_PORT` 和 `KAFKA_BOOTSTRAP_SERVERS`，然后运行：
 
 ```bash
 cd AI-dianping-backend
 mvn spring-boot:run
 ```
 
-For AI features, also set `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL_NAME`. `MCP_API_TOKEN` is optional; without it `/mcp` responds with HTTP 503. When enabled, use `Authorization: Bearer <token>`. The MCP tool set contains only read-only shop, category, and voucher lookups.
+使用 AI 功能还需要配置 `AI_BASE_URL`、`AI_API_KEY` 和 `AI_MODEL_NAME`。`MCP_API_TOKEN` 为可选项；未设置时 `/mcp` 返回 HTTP 503。启用后用 `Authorization: Bearer <token>` 认证。MCP 只注册只读的店铺、分类和优惠券查询工具。
 
-Instant messaging requires Kafka. A new Compose MySQL volume applies `db/mysql/003-chat.sql` automatically; apply that migration manually to an existing database. Map each shop to its merchant account in `tb_shop_owner`:
+即时通信需要 Kafka。全新 Compose 数据卷会执行 `db/mysql/003-chat.sql` 建表；已有数据库需手动执行该迁移。商家账号通过 `tb_shop_owner` 关联店铺，例如先确认用户和店铺 ID，再执行：
 
 ```sql
-INSERT INTO tb_shop_owner (shop_id, user_id) VALUES (<shop_id>, <merchant_user_id>)
+INSERT INTO tb_shop_owner (shop_id, user_id) VALUES (店铺ID, 商家用户ID)
 ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
 ```
 
-Customers use “联系商家” on a shop detail page. The mapped shop owner can open `chat.html?shopId=<shop_id>` to reply. The STOMP CONNECT frame carries the login token in the `authorization` native header. A Kafka transaction writes each message to `push-topic` and `store-topic`; separate consumer groups handle WebSocket delivery and asynchronous MySQL persistence. The two Kafka writes are transactional, but Kafka and MySQL do not share a cross-system transaction.
+顾客从店铺详情点击“联系商家”发消息；商家使用映射的账号打开 `chat.html?shopId=店铺ID` 回复。WebSocket STOMP CONNECT 帧使用 `authorization` 原生头传入登录 token。生产端在 Kafka 事务中将同一消息写入 `push-topic` 和 `store-topic`；独立消费组分别负责 WebSocket 实时推送和 MySQL 异步落库，会话历史通过 MySQL 查询。两个 Kafka Topic 的写入具备事务性，但 Kafka 与 MySQL 之间不构成跨系统事务。
 
-## Tests
+## 测试
 
-Run backend unit tests with:
+运行后端单元测试：
 
 ```bash
 cd AI-dianping-backend
 mvn test
 ```
 
-Tests are designed to run without a local MySQL or Redis service. The GitHub Actions workflow runs the same Maven test command on Java 17.
+测试不依赖本机 MySQL 或 Redis。GitHub Actions 会在 Java 17 环境运行相同的 Maven 测试命令。
 
-## Configuration
+## 配置项
 
-| Variable | Purpose | Default |
+| 变量 | 用途 | 默认值 |
 | --- | --- | --- |
-| `DB_URL` | JDBC connection string | Local Compose MySQL on port 3307 |
-| `DB_USERNAME` / `DB_PASSWORD` | Database credentials | `hmdp` / development-only password |
-| `REDIS_HOST` / `REDIS_PORT` | Redis connection | `localhost:6379` outside Compose |
-| `KAFKA_BOOTSTRAP_SERVERS` | Kafka broker address | `kafka:19092` in Compose; `localhost:9092` for local runs |
-| `KAFKA_PUSH_TOPIC` | Real-time delivery topic | `push-topic` |
-| `KAFKA_STORE_TOPIC` | Asynchronous persistence topic | `store-topic` |
-| `AI_BASE_URL` | OpenAI-compatible API base URL | `https://api.deepseek.com` |
-| `AI_API_KEY` | DeepSeek API key | Placeholder in `.env.example`; replace it |
-| `AI_MODEL_NAME` | Chat model | `deepseek-v4-flash` |
-| `MCP_API_TOKEN` | Bearer token for standalone MCP endpoint | Empty means disabled |
+| `DB_URL` | JDBC 连接串 | Compose 本地 MySQL，端口 3307 |
+| `DB_USERNAME` / `DB_PASSWORD` | 数据库账号 | `hmdp` / 仅供本地开发的密码 |
+| `REDIS_HOST` / `REDIS_PORT` | Redis 连接 | Compose 外默认为 `localhost:6379` |
+| `KAFKA_BOOTSTRAP_SERVERS` | Kafka Broker 地址 | Compose 内部 `kafka:19092`；本地运行默认为 `localhost:9092` |
+| `KAFKA_PUSH_TOPIC` | 实时推送 Topic | `push-topic` |
+| `KAFKA_STORE_TOPIC` | 异步落库 Topic | `store-topic` |
+| `AI_BASE_URL` | OpenAI 兼容 API 地址 | `https://api.deepseek.com` |
+| `AI_API_KEY` | DeepSeek API Key | `.env.example` 中为占位值，需替换 |
+| `AI_MODEL_NAME` | 对话模型 | `deepseek-v4-flash` |
+| `MCP_API_TOKEN` | MCP 接口 Bearer Token | 留空表示关闭 |
 
-Never commit `.env` or production credentials. Change the development database password before exposing a deployment beyond your machine.
+不要提交 `.env` 或生产凭据。部署到本机以外前，请修改开发环境数据库密码。
 
-## Project layout
+## 目录结构
 
-- `AI-dianping-backend/`: Spring Boot API, business services, AI Skills, consultant tools, and MCP server.
-- `AI-dianping-frontend/html/hmdp/`: static Vue frontend.
-- `AI-dianping-frontend/conf/nginx.conf`: local/Compose Nginx configuration.
-- `db/mysql/`: schema and synthetic demo data; no imported user accounts, phone numbers, or review records.
+- `AI-dianping-backend/`：Spring Boot API、业务服务、AI Skills、顾问工具和 MCP 服务。
+- `AI-dianping-frontend/html/hmdp/`：Vue 静态前端。
+- `AI-dianping-frontend/conf/nginx.conf`：本地及 Compose 使用的 Nginx 配置。
+- `db/mysql/`：建表脚本和合成演示数据，不包含导入的用户账号、手机号或探店笔记。
 
-## Current limits
+## 当前限制
 
-- SMS login delivery requires an SMS provider configuration; the repository does not include one.
-- AI chat and generation require a valid compatible provider key.
-- The Compose Kafka broker is a single-node development setup without production replication; shop owners must be provisioned in `tb_shop_owner`.
-- The project has no verified benchmark artifact for the performance percentages sometimes quoted in project descriptions. No such performance claim is made here.
-- This is a learning/demo project. Review authentication, rate limiting, storage, and deployment settings before production use.
+- 短信登录需要接入短信服务，仓库没有包含短信服务配置。
+- AI 聊天和内容生成需要可用的模型服务密钥。
+- Compose 中 Kafka 为单 Broker 开发配置，不提供生产环境所需的副本容灾；商家需由管理员在 `tb_shop_owner` 中配置。
+- 项目没有可核验的性能基准材料，因此不在此声明项目介绍中提到的性能百分比。
+- 这是学习/演示项目。用于生产前还需评估认证、限流、存储和部署配置。
 
-## Contributing and security
+## 贡献与安全
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and pull request guidance, and [SECURITY.md](SECURITY.md) for vulnerability reports. See [UPSTREAM.md](UPSTREAM.md) for source attribution. This repository is licensed under the MIT License; see [LICENSE](LICENSE).
-Frontend dependency attributions are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+贡献步骤见 [CONTRIBUTING.md](CONTRIBUTING.md)，漏洞报告方式见 [SECURITY.md](SECURITY.md)。源码来源见 [UPSTREAM.md](UPSTREAM.md)。本仓库使用 MIT License，详见 [LICENSE](LICENSE)。
+前端第三方依赖声明见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。

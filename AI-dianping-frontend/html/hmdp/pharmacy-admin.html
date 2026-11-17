@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5f6ef">
-  <title>门店工作台 · 邻药云</title>
+  <title>门店工作台 · 邻里药房</title>
   <link rel="stylesheet" href="./css/pharmacy-admin.css">
   <link rel="stylesheet" href="./css/pharmacy-admin-refinements.css">
   <script defer src="./js/axios.min.js"></script>
@@ -13,7 +13,7 @@
 <body>
   <div class="layout">
     <aside class="rail">
-      <a class="brand" href="./pharmacy-admin.html"><span class="brand-icon">✳</span><span class="brand-copy">邻药云<small>NEIGHBOR PHARMACY</small></span></a>
+      <a class="brand" href="./pharmacy-admin.html"><span class="brand-icon">✳</span><span class="brand-copy">邻里药房<small>NEIGHBOR PHARMACY</small></span></a>
       <div class="rail-caption">门店管理</div>
       <nav><a class="rail-link selected" href="#overview"><span>⌂</span>工作概览</a><a class="rail-link" href="#inventory"><span>▦</span>批次库存</a><a class="rail-link" href="#catalog"><span>＋</span>商品档案</a><a class="rail-link" href="#assistant"><span>✳</span>经营助手</a></nav>
       <div class="rail-bottom"><div class="leaf">✳</div><p>把每一个批次<br>都照料妥当。</p><small>CARE, IN EVERY DETAIL</small></div>
@@ -37,7 +37,7 @@
       <section id="assistant" class="content-section"><div class="section-title"><div><div class="kicker">04 / OPERATIONS ASSISTANT</div><h2>药房经营助手</h2><p>根据当前登录账号绑定门店的库存、批次效期与销售流水，整理经营风险和补货参考。</p></div><div class="section-mark">04</div></div>
         <div class="assistant-card"><div class="assistant-intro"><span class="assistant-spark">✳</span><div><b>门店数据只读分析</b><p>补货量按近 30 日销量与 21 天目标库存估算；结果需要店主审核。</p></div></div><form id="assistant-form"><label for="assistant-question">你想了解什么？</label><div class="assistant-input-row"><input id="assistant-question" maxlength="2000" placeholder="例如：看看库存风险，并给出补货参考" required><button id="assistant-submit" class="button dark" type="submit">生成经营摘要 ↗</button></div></form><div id="assistant-answer" class="assistant-answer" role="status" aria-live="polite">登录门店账号后，可以查询当前门店的经营摘要。</div><p class="assistant-disclaimer">仅用于经营辅助，不提供疾病诊断、处方、药品选择或剂量建议。</p></div>
       </section>
-      <footer><a class="footer-brand" href="./pharmacy-admin.html">✳ 邻药云</a><span>社区药房工作台 · MVP</span><a href="./index.html">返回原项目 →</a></footer>
+      <footer><a class="footer-brand" href="./pharmacy-admin.html">✳ 邻里药房</a><span>社区药房工作台 · MVP</span><a href="./index.html">返回原项目 →</a></footer>
     </main>
   </div>
   <dialog id="login-dialog" class="login-dialog"><form method="dialog" class="dialog-close"><button aria-label="关闭">×</button></form><div class="kicker">SECURE ACCESS</div><h2>门店账号登录</h2><p>使用短信验证码登录。演示环境的验证码会显示在页面上。</p><form id="token-form"><label for="phone-input">手机号</label><input id="phone-input" inputmode="tel" maxlength="11" required placeholder="输入手机号"><button id="send-code" class="button quiet code-button" type="button">获取验证码</button><label for="token-input">短信验证码</label><input id="token-input" inputmode="numeric" maxlength="6" required placeholder="输入 6 位验证码"><div class="dialog-actions"><button id="token-cancel" class="button quiet" type="button">取消</button><button class="button dark" type="submit">登录工作台 <span>↗</span></button></div><p id="login-message" aria-live="polite">仅限已绑定药房门店的账号管理库存。</p></form></dialog>

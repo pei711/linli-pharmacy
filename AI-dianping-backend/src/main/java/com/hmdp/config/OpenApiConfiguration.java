@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(info = @Info(
-        title = "Neighbor Pharmacy Cloud API",
+        title = "Neighborhood Pharmacy API",
         version = "v1",
         description = "Community pharmacy catalog, batch inventory, reservations, inbound review, and operations APIs."
 ))

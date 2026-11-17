@@ -1,4 +1,4 @@
-# Neighbor Pharmacy Cloud — pharmacy reservation and operations platform
+# Neighborhood Pharmacy — pharmacy reservation and operations platform
 
 An incremental pharmacy platform based on `linli-zhiying`. The isolated test deployment currently includes nearby-pharmacy discovery, batch-backed OTC reservation, Kafka order processing, FEFO inventory, a Caffeine + Redis shop cache, an owner workspace, and a rule-based pharmacy operations assistant. OCR photo recognition is implemented as an optional FastAPI service with an audited human-confirmation path; real PaddleOCR inference has not yet been run on the 2 GiB test server.
 

@@ -1,4 +1,4 @@
-# 邻药云 Neighbor Pharmacy Cloud
+# 邻里药房 Neighborhood Pharmacy
 
 基于 `linli-zhiying` 增量改造的社区智慧药房平台。隔离测试环境已运行附近门店查询、批次支撑的 OTC 预约、Kafka 异步订单、FEFO 库存、Caffeine + Redis 门店缓存和门店工作台。经营助手已接入真实模型工具调用（生产环境实测来源为 `LANGCHAIN4J_AGENT`），规则摘要仅作降级路径；OCR 候选复核与正式入库链路已接入，但服务器尚未运行真实 PaddleOCR 模型。
 

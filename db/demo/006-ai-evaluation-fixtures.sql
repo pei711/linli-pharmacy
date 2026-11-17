@@ -4,15 +4,15 @@ SET NAMES utf8mb4;
 USE hmdp;
 
 INSERT INTO tb_user (phone, password, nick_name, icon)
-VALUES ('19900000101', '', '邻药云AI评估A店主', ''),
-       ('19900000102', '', '邻药云AI评估B店主', '')
+VALUES ('19900000101', '', '邻里药房AI评估A店主', ''),
+       ('19900000102', '', '邻里药房AI评估B店主', '')
 ON DUPLICATE KEY UPDATE nick_name = VALUES(nick_name);
 
 INSERT INTO tb_shop
     (id, name, type_id, images, area, address, x, y, avg_price, sold, comments, score, open_hours)
 VALUES
-    (990010, '邻药云AI评估A店', 3, '', '思明区', '评估专用 A 店', 118.0894, 24.4798, 0, 0, 0, 50, '08:00-22:00'),
-    (990020, '邻药云AI评估B店', 3, '', '思明区', '评估专用 B 店', 118.0895, 24.4799, 0, 0, 0, 50, '08:00-22:00')
+    (990010, '邻里药房AI评估A店', 3, '', '思明区', '评估专用 A 店', 118.0894, 24.4798, 0, 0, 0, 50, '08:00-22:00'),
+    (990020, '邻里药房AI评估B店', 3, '', '思明区', '评估专用 B 店', 118.0895, 24.4799, 0, 0, 0, 50, '08:00-22:00')
 ON DUPLICATE KEY UPDATE name = VALUES(name), address = VALUES(address), open_hours = VALUES(open_hours);
 
 -- These synthetic owners may have been imported by an older evaluation run
